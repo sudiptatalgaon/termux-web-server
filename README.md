@@ -4,7 +4,7 @@
 
 <p>The document root is device accessible internal storage so you can easily manage your files.</p>
 
-<p>Web server include Apache, Php, PhpMyAdmin, MariaDB Mysql Database.</p>
+<p>Web server include Apache, Php, PhpMyAdmin, MariaDB Mysql Database, Node.js.</p>
 
 <p>Start web server by running <b>starjet</b> command.</p>
 
