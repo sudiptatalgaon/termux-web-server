@@ -1,0 +1,45 @@
+#!$PREFIX/bin/bash
+
+pkg update -y && pkg upgrade -y
+
+if [ ! -r /sdcard/htdocs ]
+then
+termux-setup-storage
+sleep 5
+fi
+
+pkg install apache2 php php-apache phpmyadmin mariadb nodejs -y
+
+htdocs='/sdcard/htdocs'
+index='/sdcard/htdocs/index.php'
+if [ ! -d $htdocs ];
+then
+  mkdir $htdocs
+fi
+if [ ! -d $index ];
+then
+  cp termux-web-server/index.php /sdcard/htdocs/index.php
+fi
+
+rm $PREFIX/etc/apache2/httpd.conf
+
+cp termux-web-server/httpd.conf $PREFIX/etc/apache2/
+
+rm $PREFIX/bin/starjet
+
+cp termux-web-server/starjet $PREFIX/bin/
+
+chmod +x $PREFIX/bin/starjet
+
+echo "Web server installed sucussfully..."
+echo "/sdcard/htdocs - is your document directory.."
+echo "Place your files in /sdcard/htdocs"
+echo "Starting web server"
+echo "Starting web server next time"
+echo "use command \"starjet\""
+
+starjet start
+
+echo "Running Web Server"
+
+termux-open-url http://localhost:8080/
