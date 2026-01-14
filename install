@@ -8,7 +8,8 @@ termux-setup-storage
 sleep 5
 fi
 
-pkg install apache2 php php-apache phpmyadmin mariadb nodejs -y
+pkg install apache2 php php-apache phpmyadmin mariadb nodejs cloudflared -y
+npm install -g pm2
 
 htdocs='/sdcard/htdocs'
 index='/sdcard/htdocs/index.php'
