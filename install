@@ -13,13 +13,23 @@ npm install -g pm2
 
 htdocs='/sdcard/htdocs'
 index='/sdcard/htdocs/index.php'
+php='/data/data/com.termux/files/usr/etc/php'
+phpini='/data/data/com.termux/files/usr/etc/php/php.ini'
 if [ ! -d $htdocs ];
 then
   mkdir $htdocs
 fi
+if [ ! -d $php ];
+then
+  mkdir $php
+fi
+if [ ! -d $phpini ];
+then
+  cp termux-web-server/php.ini $phpini
+fi
 if [ ! -d $index ];
 then
-  cp termux-web-server/index.php /sdcard/htdocs/index.php
+  cp termux-web-server/index.php $index
 fi
 
 rm $PREFIX/etc/apache2/httpd.conf
