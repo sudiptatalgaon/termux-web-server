@@ -1,4 +1,5 @@
 #!$PREFIX/bin/bash
+set -e
 
 pkg update -y && pkg upgrade -y
 
@@ -36,16 +37,51 @@ rm $PREFIX/etc/apache2/httpd.conf
 
 cp termux-web-server/httpd.conf $PREFIX/etc/apache2/
 
+# Generate passwords
 SECRET=$(tr -dc 'a-z0-9' </dev/urandom | head -c 32)
+ROOTPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
+PMAPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
 
+# Config Patch
 sed -i "s|^\$cfg\['blowfish_secret'\].*|\$cfg['blowfish_secret'] = '$SECRET';|" \
 /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-
-echo blowfish_secret: "$SECRET"
-
+grep -q "^\$cfg\['CookieSameSite'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
+sed -i "/\['auth_type'\] = 'cookie';/a\\
+\$cfg['CookieSameSite'] = 'Strict';
+" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
 grep -q "^\$cfg\['Servers'\].*\['socket'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
 sed -i "/\['host'\] = 'localhost';/a\\\$cfg['Servers'][\$i]['socket'] = '/data/data/com.termux/files/usr/var/run/mysqld.sock';" \
 /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i 's|^// \(\$cfg\['\''Servers'\''\]\[\$i\].*\)|\1|' \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlhost'\''\].*|// &|' \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlport'\''\].*|// &|' \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i "s|\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\][[:space:]]*=[[:space:]]*\).*$|\1'$PMAPW';|" \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+
+# Configure MariaDB
+mariadb -u root <<EOF
+DROP USER IF EXISTS 'root'@'127.0.0.1';
+DROP USER IF EXISTS 'root'@'::1';
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$ROOTPW';
+
+CREATE DATABASE IF NOT EXISTS phpmyadmin;
+
+CREATE USER IF NOT EXISTS 'pma'@'localhost' IDENTIFIED BY '$PMAPW';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON phpmyadmin.*
+TO 'pma'@'localhost';
+
+FLUSH PRIVILEGES;
+EOF
+
+# Import PhpMyAdmin tables
+mariadb -u root -p"$ROOTPW" phpmyadmin \
+< /data/data/com.termux/files/usr/share/phpmyadmin/sql/create_tables.sql
 
 rm $PREFIX/bin/starjet
 
@@ -53,12 +89,13 @@ cp termux-web-server/starjet $PREFIX/bin/
 
 chmod +x $PREFIX/bin/starjet
 
+echo "Blowfish Secret: $SECRET"
+echo "MariaDB root password: $ROOTPW"
+echo "PhpMyAdmin pma password: $PMAPW"
 echo "Web server installed sucussfully..."
-echo "/sdcard/htdocs - is your document directory.."
-echo "Place your files in /sdcard/htdocs"
+echo "Place your php files in /sdcard/htdocs"
+echo "Use command for next start: starjet"
 echo "Starting web server"
-echo "Starting web server next time"
-echo "use command \"starjet\""
 
 starjet start
 
