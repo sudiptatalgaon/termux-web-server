@@ -36,6 +36,13 @@ rm $PREFIX/etc/apache2/httpd.conf
 
 cp termux-web-server/httpd.conf $PREFIX/etc/apache2/
 
+sed -i "s|^\$cfg\['blowfish_secret'\].*|\$cfg['blowfish_secret'] = '6gks47g573fdik94h6u270bz48aknht4';|" \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+
+grep -q "^\$cfg\['Servers'\].*\['socket'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
+sed -i "/\['host'\] = 'localhost';/a\\\$cfg['Servers'][\$i]['socket'] = '/data/data/com.termux/files/usr/var/run/mysqld.sock';" \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+
 rm $PREFIX/bin/starjet
 
 cp termux-web-server/starjet $PREFIX/bin/
