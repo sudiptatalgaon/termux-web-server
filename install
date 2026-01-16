@@ -23,7 +23,7 @@ fi
 if [ ! -e $phpini ]; then
   cp termux-web-server/php.ini $phpini
 fi
-if [ ! -r $index ]; then
+if [ ! -e $index ]; then
   cp termux-web-server/index.php $index
 fi
 
