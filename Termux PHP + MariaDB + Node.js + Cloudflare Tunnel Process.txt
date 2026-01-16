@@ -78,6 +78,14 @@ EOF
 
 ######################## Optional ########################
 
+## Add MariaDB user and database
+mariadb -u root -p"MariaDBRootPassword"
+CREATE USER 'appuser'@'localhost' IDENTIFIED BY 'StrongPasswordHere';
+CREATE DATABASE appdata;
+GRANT ALL PRIVILEGES ON appdata.* TO 'appuser'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
 ## SSH connect configuration other device
 whoami
 ## Note user like u0_a123
