@@ -2,8 +2,7 @@
 
 pkg update -y && pkg upgrade -y
 
-if [ ! -r /sdcard/htdocs ]
-then
+if [ ! -r /sdcard/htdocs ]; then
 termux-setup-storage
 sleep 5
 fi
@@ -12,24 +11,19 @@ pkg install phpmyadmin -y
 pkg install apache2 php php-apache mariadb nodejs -y
 npm install -g pm2
 
-htdocs='/sdcard/htdocs'
 index='/sdcard/htdocs/index.php'
 php='/data/data/com.termux/files/usr/etc/php'
 phpini='/data/data/com.termux/files/usr/etc/php/php.ini'
-if [ ! -d $htdocs ];
-then
-  mkdir $htdocs
+if [ ! -d /sdcard/htdocs ]; then
+  mkdir /sdcard/htdocs
 fi
-if [ ! -d $php ];
-then
+if [ ! -d $php ]; then
   mkdir $php
 fi
-if [ ! -d $phpini ];
-then
+if [ ! -e $phpini ]; then
   cp termux-web-server/php.ini $phpini
 fi
-if [ ! -d $index ];
-then
+if [ ! -r $index ]; then
   cp termux-web-server/index.php $index
 fi
 
@@ -79,7 +73,9 @@ EOF
 mariadb -u root -p"$ROOTPW" phpmyadmin \
 < /data/data/com.termux/files/usr/share/phpmyadmin/sql/create_tables.sql
 
-rm $PREFIX/bin/starjet
+if [ -e $PREFIX/bin/starjet ]; then
+  rm $PREFIX/bin/starjet
+fi
 
 cp termux-web-server/starjet $PREFIX/bin/
 
