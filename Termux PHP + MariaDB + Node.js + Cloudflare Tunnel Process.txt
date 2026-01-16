@@ -1,0 +1,112 @@
+termux-change-repo
+## Select repo Europe
+cat > $PREFIX/etc/apt/sources.list <<EOF
+deb https://packages-cf.termux.dev/apt/termux-main stable main
+EOF
+
+pkg install git -y && git clone https://github.com/sudiptatalgaon/termux-web-server && sh termux-web-server/install && rm -rf termux-web-server
+
+## Save passwords on Termux screen
+## Secure MariaDB enter MariaDB root password
+mysql_secure_installation
+
+Switch to unix_socket authentication  →  n
+Set root password → n
+Remove anonymous users → Y
+Disallow remote root login → Y
+Remove test database → Y
+Reload privilege tables → Y
+
+## Login Cloudflare and authorise domain and replace domain
+cloudflared tunnel login
+cloudflared tunnel create myapp
+cloudflared tunnel route dns myapp example.com
+cloudflared tunnel route dns myapp grid.example.com
+cloudflared tunnel route dns myapp algo.example.com
+
+## Replace tunnel id
+cat > ~/.cloudflared/config.yml <<EOF
+tunnel: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+credentials-file: /data/data/com.termux/files/home/.cloudflared/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.json
+ingress:
+  - hostname: example.com
+    service: http://localhost:8080
+  - hostname: grid.example.com
+    service: http://localhost:3000
+  - hostname: algo.example.com
+    service: http://localhost:3001
+  - hostname: ssh.example.com
+    service: ssh://localhost:8022
+  - service: http_status:404
+EOF
+
+## Stop MariaDB
+mysql-admin -u root -p shutdown
+
+## MariaDB startup script
+cat > ~/mariadb.sh <<EOF
+#!/data/data/com.termux/files/usr/bin/sh
+exec mysqld_safe --datadir="$PREFIX/var/lib/mysql"
+EOF
+chmod +x ~/mariadb.sh
+
+## Start sshd
+sshd
+## Setup pm2 startup
+pm2 start ~/mariadb.sh --name mariadb
+cd /sdcard/grid.example.com
+pm2 start server.js --name server-1
+cd /sdcard/algo.example.com
+pm2 start server.js --name server-2
+pm2 start "cloudflared tunnel run myapp" --name tunnel
+pm2 save
+
+## Autostart on Termux open
+cat > ~/.bashrc <<EOF
+# Start sshd
+sshd
+# Start starjet standalone (silent, no job message)
+if ! pgrep -f "php-httpd" > /dev/null; then
+  nohup starjet start >/dev/null 2>&1 &
+  disown
+fi
+# Restore PM2 processes
+if command -v pm2 >/dev/null; then
+  pm2 resurrect >/dev/null 2>&1
+fi
+EOF
+
+######################## Optional ########################
+
+## SSH connect configuration other device
+whoami
+## Note user like u0_a123
+cat >> ~/.ssh/config <<EOF
+Host termux
+  User u0_a123
+  ProxyCommand cloudflared access ssh --hostname ssh.example.com
+EOF
+chmod 600 ~/.ssh/config
+ssh termux
+
+## pm2 commands
+pm2 resurrect
+pm2 list
+pm2 stop server-1
+pm2 delete server-1
+pm2 stop all
+pm2 start all
+pm2 save
+
+## Remove DNS Routes and Delete the Tunnel commands
+cloudflared tunnel list
+cloudflared tunnel route dns myapp --delete
+cloudflared tunnel delete myapp
+
+## Performance tuning for Php
+nano $PREFIX/etc/my.cnf
+[mysqld]
+bind-address=127.0.0.1
+innodb_buffer_pool_size=64M
+max_connections=20
+skip-name-resolve
