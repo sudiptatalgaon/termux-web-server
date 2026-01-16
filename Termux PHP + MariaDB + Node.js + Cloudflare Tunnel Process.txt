@@ -41,7 +41,7 @@ ingress:
 EOF
 
 ## Stop MariaDB
-mysql-admin -u root -p shutdown
+mariadb-admin -u root -p shutdown
 
 ## MariaDB startup script
 cat > ~/mariadb.sh <<EOF
