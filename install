@@ -1,5 +1,4 @@
 #!$PREFIX/bin/bash
-set -e
 
 pkg update -y && pkg upgrade -y
 
