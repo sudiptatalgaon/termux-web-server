@@ -9,7 +9,8 @@ sleep 5
 fi
 
 pkg install phpmyadmin -y
-pkg install apache2 php php-apache mariadb -y
+pkg install apache2 php php-apache mariadb nodejs -y
+npm install -g pm2
 
 htdocs='/sdcard/htdocs'
 index='/sdcard/htdocs/index.php'
@@ -59,6 +60,9 @@ sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlport'\''\].*|// &|' \
 /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
 sed -i "s|\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\][[:space:]]*=[[:space:]]*\).*$|\1'$PMAPW';|" \
 /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+
+# Start MariaDB
+mysqld_safe --datadir=$PREFIX/var/lib/mysql &
 
 # Configure MariaDB
 mariadb -u root <<EOF
