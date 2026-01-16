@@ -10,4 +10,4 @@
 
 <p>This will bring you to the Homepage of your server automatically.</p>
 
-<code>`pkg install git -y && git clone https://github.com/sudiptatalgaon/termux-web-server && sh termux-web-server/install && rm -rf termux-web-server`</code>
+`<code>pkg install git -y && git clone https://github.com/sudiptatalgaon/termux-web-server && sh termux-web-server/install && rm -rf termux-web-server</code>`
