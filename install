@@ -7,8 +7,7 @@ termux-setup-storage
 sleep 5
 fi
 
-pkg install phpmyadmin -y
-pkg install apache2 php php-apache mariadb nodejs -y
+pkg install apache2 php php-apache mariadb phpmyadmin nodejs -y
 npm install -g pm2
 
 index='/sdcard/htdocs/index.php'
