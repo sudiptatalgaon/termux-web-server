@@ -31,29 +31,18 @@ rm $PREFIX/etc/apache2/httpd.conf
 
 cp termux-web-server/httpd.conf $PREFIX/etc/apache2/
 
+if [ -e $PREFIX/bin/starjet ]; then
+  rm $PREFIX/bin/starjet
+fi
+
+cp termux-web-server/starjet $PREFIX/bin/
+
+chmod +x $PREFIX/bin/starjet
+
 # Generate passwords
 SECRET=$(tr -dc 'a-z0-9' </dev/urandom | head -c 32)
 ROOTPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
 PMAPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
-
-# Config Patch
-sed -i "s|^\$cfg\['blowfish_secret'\].*|\$cfg['blowfish_secret'] = '$SECRET';|" \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-grep -q "^\$cfg\['CookieSameSite'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
-sed -i "/\['auth_type'\] = 'cookie';/a\\
-\$cfg['CookieSameSite'] = 'Strict';
-" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-grep -q "^\$cfg\['Servers'\].*\['socket'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
-sed -i "/\['host'\] = 'localhost';/a\\\$cfg['Servers'][\$i]['socket'] = '/data/data/com.termux/files/usr/var/run/mysqld.sock';" \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-sed -i 's|^// \(\$cfg\['\''Servers'\''\]\[\$i\].*\)|\1|' \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlhost'\''\].*|// &|' \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlport'\''\].*|// &|' \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-sed -i "s|\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\][[:space:]]*=[[:space:]]*\).*$|\1'$PMAPW';|" \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
 
 # Start MariaDB
 mysqld_safe --datadir=$PREFIX/var/lib/mysql &
@@ -73,13 +62,24 @@ EOF
 mariadb -u root -p"$ROOTPW" phpmyadmin \
 < /data/data/com.termux/files/usr/share/phpmyadmin/sql/create_tables.sql
 
-if [ -e $PREFIX/bin/starjet ]; then
-  rm $PREFIX/bin/starjet
-fi
-
-cp termux-web-server/starjet $PREFIX/bin/
-
-chmod +x $PREFIX/bin/starjet
+# Config Patch
+sed -i "s|^\$cfg\['blowfish_secret'\].*|\$cfg['blowfish_secret'] = '$SECRET';|" \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+grep -q "^\$cfg\['CookieSameSite'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
+sed -i "/\['auth_type'\] = 'cookie';/a\\
+\$cfg['CookieSameSite'] = 'Strict';
+" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+grep -q "^\$cfg\['Servers'\].*\['socket'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
+sed -i "/\['host'\] = 'localhost';/a\\\$cfg['Servers'][\$i]['socket'] = '/data/data/com.termux/files/usr/var/run/mysqld.sock';" \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i 's|^// \(\$cfg\['\''Servers'\''\]\[\$i\].*\)|\1|' \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlhost'\''\].*|// &|' \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlport'\''\].*|// &|' \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+sed -i "s|\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\][[:space:]]*=[[:space:]]*\).*$|\1'$PMAPW';|" \
+/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
 
 echo "Blowfish Secret: $SECRET"
 echo "MariaDB root password: $ROOTPW"
