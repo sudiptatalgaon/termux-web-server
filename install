@@ -10,8 +10,8 @@ fi
 
 pkg install phpmyadmin -y
 pkg install apache2 php php-apache mariadb -y
-pkg nodejs -y
-pkg cloudflared -y
+pkg install nodejs -y
+pkg install cloudflared -y
 
 htdocs='/sdcard/htdocs'
 index='/sdcard/htdocs/index.php'
