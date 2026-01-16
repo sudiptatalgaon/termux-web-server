@@ -10,7 +10,6 @@ fi
 
 pkg install phpmyadmin -y
 pkg install apache2 php php-apache mariadb -y
-pkg install nodejs -y
 
 htdocs='/sdcard/htdocs'
 index='/sdcard/htdocs/index.php'
@@ -81,8 +80,6 @@ rm $PREFIX/bin/starjet
 cp termux-web-server/starjet $PREFIX/bin/
 
 chmod +x $PREFIX/bin/starjet
-
-npm install -g pm2
 
 echo "Blowfish Secret: $SECRET"
 echo "MariaDB root password: $ROOTPW"
