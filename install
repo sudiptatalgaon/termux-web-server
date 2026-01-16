@@ -65,17 +65,10 @@ sed -i "s|\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\][[:space:]]*=[[:space:]]*\
 mariadb -u root <<EOF
 DROP USER IF EXISTS 'root'@'127.0.0.1';
 DROP USER IF EXISTS 'root'@'::1';
-
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$ROOTPW';
-
 CREATE DATABASE IF NOT EXISTS phpmyadmin;
-
 CREATE USER IF NOT EXISTS 'pma'@'localhost' IDENTIFIED BY '$PMAPW';
-
-GRANT SELECT, INSERT, UPDATE, DELETE
-ON phpmyadmin.*
-TO 'pma'@'localhost';
-
+GRANT SELECT, INSERT, UPDATE, DELETE ON phpmyadmin.* TO 'pma'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
