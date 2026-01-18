@@ -3,10 +3,24 @@
 pkg update -y
 DEBIAN_FRONTEND=noninteractive pkg upgrade -y -o Dpkg::Options::="--force-confold"
 
-if [ ! -r /sdcard/htdocs ]; then
-termux-setup-storage
-sleep 5
+# Request permission if not granted
+if [ ! -r /sdcard ]; then
+  echo "Requesting storage permission..."
+  termux-setup-storage
 fi
+
+# Wait until permission is granted
+TIMEOUT=30
+COUNT=0
+until [ -r /sdcard ]; do
+  sleep 1
+  COUNT=$((COUNT+1))
+  if [ $COUNT -ge $TIMEOUT ]; then
+    echo "Storage permission denied or timed out"
+    exit 1
+  fi
+done
+echo "Storage permission granted."
 
 pkg install apache2 php php-apache mariadb phpmyadmin nodejs cloudflared -y
 npm install -g pm2
@@ -46,9 +60,16 @@ PMAPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
 
 # Start MariaDB
 mariadbd-safe &
-sleep 3
+
+# Wait until MariaDB is ready
+echo "Waiting for MariaDB to start..."
+until mariadb-admin ping --silent; do
+  sleep 1
+done
+echo "MariaDB is ready."
 
 # Configure MariaDB
+echo "Configure MariaDB"
 mariadb -u root <<EOF
 DROP USER IF EXISTS 'root'@'127.0.0.1';
 DROP USER IF EXISTS 'root'@'::1';
@@ -60,10 +81,12 @@ FLUSH PRIVILEGES;
 EOF
 
 # Import PhpMyAdmin tables
+echo "Import PhpMyAdmin tables"
 mariadb -u root -p"$ROOTPW" phpmyadmin \
 < /data/data/com.termux/files/usr/share/phpmyadmin/sql/create_tables.sql
 
-# Config Patch
+# Configure config.inc.php
+echo "Configure config.inc.php"
 sed -i "s|^\$cfg\['blowfish_secret'\].*|\$cfg['blowfish_secret'] = '$SECRET';|" \
 /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
 grep -q "^\$cfg\['CookieSameSite'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
