@@ -48,7 +48,7 @@ cat > ~/httpd.sh <<EOF
 #!$PREFIX/bin/sh
 # load envvars if exists
 if [ -f $PREFIX/bin/envvars ]; then
-  . $PREFIX/bin/envvars
+  . envvars
 fi
 exec httpd -DFOREGROUND
 EOF
