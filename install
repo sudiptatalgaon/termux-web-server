@@ -25,20 +25,17 @@ echo "Storage permission granted."
 pkg install apache2 php php-apache mariadb phpmyadmin nodejs cloudflared -y
 npm install -g pm2
 
-index='/sdcard/htdocs/index.php'
-php='/data/data/com.termux/files/usr/etc/php'
-phpini='/data/data/com.termux/files/usr/etc/php/php.ini'
 if [ ! -d /sdcard/htdocs ]; then
   mkdir /sdcard/htdocs
 fi
-if [ ! -d $php ]; then
-  mkdir $php
+if [ ! -d $PREFIX/etc/php ]; then
+  mkdir $PREFIX/etc/php
 fi
-if [ ! -e $phpini ]; then
-  cp termux-web-server/php.ini $phpini
+if [ ! -e $PREFIX/etc/php/php.ini ]; then
+  cp termux-web-server/php.ini $PREFIX/etc/php/php.ini
 fi
-if [ ! -e $index ]; then
-  cp termux-web-server/index.php $index
+if [ ! -e /sdcard/htdocs/index.php ]; then
+  cp termux-web-server/index.php /sdcard/htdocs/
 fi
 
 rm $PREFIX/etc/apache2/httpd.conf
@@ -83,27 +80,27 @@ EOF
 # Import PhpMyAdmin tables
 echo "Import PhpMyAdmin tables"
 mariadb -u root -p"$ROOTPW" phpmyadmin \
-< /data/data/com.termux/files/usr/share/phpmyadmin/sql/create_tables.sql
+< $PREFIX/share/phpmyadmin/sql/create_tables.sql
 
 # Configure config.inc.php
 echo "Configure config.inc.php"
 sed -i "s|^\$cfg\['blowfish_secret'\].*|\$cfg['blowfish_secret'] = '$SECRET';|" \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-grep -q "^\$cfg\['CookieSameSite'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
+$PREFIX/share/phpmyadmin/config.inc.php
+grep -q "^\$cfg\['CookieSameSite'\]" $PREFIX/share/phpmyadmin/config.inc.php || \
 sed -i "/\['auth_type'\] = 'cookie';/a\\
 \$cfg['CookieSameSite'] = 'Strict';
-" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
-grep -q "^\$cfg\['Servers'\].*\['socket'\]" /data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php || \
-sed -i "/\['host'\] = 'localhost';/a\\\$cfg['Servers'][\$i]['socket'] = '/data/data/com.termux/files/usr/var/run/mysqld.sock';" \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+" $PREFIX/share/phpmyadmin/config.inc.php
+grep -q "^\$cfg\['Servers'\].*\['socket'\]" $PREFIX/share/phpmyadmin/config.inc.php || \
+sed -i "/\['host'\] = 'localhost';/a\\\$cfg['Servers'][\$i]['socket'] = '$PREFIX/var/run/mysqld.sock';" \
+$PREFIX/share/phpmyadmin/config.inc.php
 sed -i 's|^// \(\$cfg\['\''Servers'\''\]\[\$i\].*\)|\1|' \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+$PREFIX/share/phpmyadmin/config.inc.php
 sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlhost'\''\].*|// &|' \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+$PREFIX/share/phpmyadmin/config.inc.php
 sed -i 's|^$cfg\['\''Servers'\''\]\[$i\]\['\''controlport'\''\].*|// &|' \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+$PREFIX/share/phpmyadmin/config.inc.php
 sed -i "s|\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\][[:space:]]*=[[:space:]]*\).*$|\1'$PMAPW';|" \
-/data/data/com.termux/files/usr/share/phpmyadmin/config.inc.php
+$PREFIX/share/phpmyadmin/config.inc.php
 
 echo "Blowfish Secret: $SECRET"
 echo "MariaDB root password: $ROOTPW"
