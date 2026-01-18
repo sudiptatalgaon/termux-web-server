@@ -45,19 +45,18 @@ mariadb-admin -u root -p shutdown
 
 ## Httpd startup script
 cat > ~/httpd.sh <<EOF
-#!/data/data/com.termux/files/usr/bin/sh
-HTTPD="/data/data/com.termux/files/usr/bin/httpd"
+#!$PREFIX/bin/sh
 # load envvars if exists
-if [ -f /data/data/com.termux/files/usr/bin/envvars ]; then
-  . /data/data/com.termux/files/usr/bin/envvars
+if [ -f $PREFIX/bin/envvars ]; then
+  . $PREFIX/bin/envvars
 fi
-exec \$HTTPD -DFOREGROUND
+exec $PREFIX/bin/httpd -DFOREGROUND
 EOF
 chmod +x ~/httpd.sh
 
 ## MariaDB startup script
 cat > ~/mariadb.sh <<EOF
-#!/data/data/com.termux/files/usr/bin/sh
+#!$PREFIX/bin/sh
 exec mariadbd-safe
 EOF
 chmod +x ~/mariadb.sh
