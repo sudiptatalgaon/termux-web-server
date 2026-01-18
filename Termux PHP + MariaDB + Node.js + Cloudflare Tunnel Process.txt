@@ -50,7 +50,7 @@ cat > ~/httpd.sh <<EOF
 if [ -f $PREFIX/bin/envvars ]; then
   . $PREFIX/bin/envvars
 fi
-exec $PREFIX/bin/httpd -DFOREGROUND
+exec httpd -DFOREGROUND
 EOF
 chmod +x ~/httpd.sh
 
