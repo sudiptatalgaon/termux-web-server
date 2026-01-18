@@ -60,7 +60,7 @@ PMAPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
 
 # Start MariaDB
 mariadbd-safe &
-sleep 1
+sleep 2
 # Wait until MariaDB is ready
 echo "Waiting for MariaDB to start..."
 until mariadb-admin ping --silent; do
