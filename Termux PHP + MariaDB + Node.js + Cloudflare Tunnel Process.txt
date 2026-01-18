@@ -51,7 +51,7 @@ HTTPD="/data/data/com.termux/files/usr/bin/httpd"
 if [ -f /data/data/com.termux/files/usr/bin/envvars ]; then
   . /data/data/com.termux/files/usr/bin/envvars
 fi
-exec $HTTPD -DFOREGROUND
+exec \$HTTPD -DFOREGROUND
 EOF
 chmod +x ~/httpd.sh
 
