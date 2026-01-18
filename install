@@ -45,7 +45,7 @@ ROOTPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
 PMAPW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
 
 # Start MariaDB
-mysqld_safe --datadir=$PREFIX/var/lib/mysql &
+mariadbd-safe &
 sleep 3
 
 # Configure MariaDB
