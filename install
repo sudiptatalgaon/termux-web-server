@@ -32,7 +32,7 @@ if [ ! -d $PREFIX/etc/php ]; then
   mkdir $PREFIX/etc/php
 fi
 if [ ! -e $PREFIX/etc/php/php.ini ]; then
-  cp termux-web-server/php.ini $PREFIX/etc/php/php.ini
+  cp termux-web-server/php.ini $PREFIX/etc/php/
 fi
 if [ ! -e /sdcard/htdocs/index.php ]; then
   cp termux-web-server/index.php /sdcard/htdocs/
