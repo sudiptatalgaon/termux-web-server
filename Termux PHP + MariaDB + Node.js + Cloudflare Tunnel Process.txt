@@ -43,16 +43,29 @@ EOF
 ## Stop MariaDB
 mariadb-admin -u root -p shutdown
 
+## Httpd startup script
+cat > ~/httpd.sh <<EOF
+#!/data/data/com.termux/files/usr/bin/sh
+HTTPD="/data/data/com.termux/files/usr/bin/httpd"
+# load envvars if exists
+if [ -f /data/data/com.termux/files/usr/bin/envvars ]; then
+  . /data/data/com.termux/files/usr/bin/envvars
+fi
+exec $HTTPD -DFOREGROUND
+EOF
+chmod +x ~/httpd.sh
+
 ## MariaDB startup script
 cat > ~/mariadb.sh <<EOF
 #!/data/data/com.termux/files/usr/bin/sh
-exec mysqld_safe --datadir="$PREFIX/var/lib/mysql"
+exec mariadbd-safe
 EOF
 chmod +x ~/mariadb.sh
 
 ## Start sshd
 sshd
 ## Setup pm2 startup
+pm2 start ~/httpd.sh --name httpd
 pm2 start ~/mariadb.sh --name mariadb
 cd /sdcard/grid.example.com
 pm2 start server.js --name server-1
@@ -65,11 +78,6 @@ pm2 save
 cat > ~/.bashrc <<EOF
 # Start sshd
 sshd
-# Start starjet standalone (silent, no job message)
-if ! pgrep -f "php-httpd" > /dev/null; then
-  nohup starjet start >/dev/null 2>&1 &
-  disown
-fi
 # Restore PM2 processes
 if command -v pm2 >/dev/null; then
   pm2 resurrect >/dev/null 2>&1
