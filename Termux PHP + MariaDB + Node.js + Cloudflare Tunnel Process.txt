@@ -19,7 +19,10 @@ Reload privilege tables → Y
 
 ## Login Cloudflare and authorise domain and replace domain
 cloudflared tunnel login
+cloudflared tunnel list
 cloudflared tunnel create myapp
+cloudflared tunnel info myapp
+cloudflared tunnel delete myapp2
 cloudflared tunnel route dns myapp example.com
 cloudflared tunnel route dns myapp grid.example.com
 cloudflared tunnel route dns myapp algo.example.com
